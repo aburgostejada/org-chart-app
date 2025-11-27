@@ -1,0 +1,9 @@
+id,name,position,manager_id,image_url
+1,John Doe,CEO,,https://i.pravatar.cc/150?img=1
+2,Jane Smith,CTO,1,https://i.pravatar.cc/150?img=2
+3,Mike Johnson,CFO,1,https://i.pravatar.cc/150?img=3
+4,Sarah Williams,VP Engineering,2,https://i.pravatar.cc/150?img=4
+5,David Brown,Senior Engineer,4,https://i.pravatar.cc/150?img=5
+6,Emily Davis,Product Manager,2,https://i.pravatar.cc/150?img=6
+7,Chris Wilson,VP Sales,1,https://i.pravatar.cc/150?img=7
+8,Jessica Taylor,Sales Manager,7,https://i.pravatar.cc/150?img=8

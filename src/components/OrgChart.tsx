@@ -1,94 +1,79 @@
-import React, { useState } from 'react';
-import type { TreeNode } from '../types';
-import { OrgChartNode } from './OrgChartNode';
-import { Box } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { AnimatePresence, motion } from 'framer-motion';
-
-
-
-const ChildrenContainer = styled(Box)({
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: 20,
-    position: 'relative',
-    gap: 16,
-    flexWrap: 'wrap', // Allow wrapping on small screens if needed, though tree usually scrolls
-    '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: '50%',
-        width: 2,
-        height: 20,
-        backgroundColor: '#ccc',
-        transform: 'translateX(-50%)',
-    },
-});
-
-const NodeWrapper = styled(Box)({
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    position: 'relative',
-});
-
-
+import React from 'react';
+import Tree from 'react-d3-tree';
+import type { OrgNode } from '../types';
+import { Card, Typography, Avatar } from '@mui/material';
 
 interface OrgChartProps {
-    node: TreeNode;
-    depth?: number;
+    data: OrgNode[];
 }
 
-export const OrgChart: React.FC<OrgChartProps> = ({ node, depth = 0 }) => {
-    const [expanded, setExpanded] = useState(true);
-    const hasChildren = node.children && node.children.length > 0;
+const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
+    // Custom node render function
+    const renderCustomNodeElement = ({ nodeDatum, toggleNode }: any) => {
+        // nodeDatum contains the data we passed.
+
+        return (
+            <g>
+                <foreignObject
+                    width={200}
+                    height={120}
+                    x={-100}
+                    y={-60}
+                >
+                    <Card
+                        onClick={toggleNode}
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            p: 1,
+                            bgcolor: 'white',
+                            border: '1px solid #e0e0e0',
+                            '&:hover': {
+                                borderColor: 'primary.main',
+                                boxShadow: 3,
+                            }
+                        }}
+                    >
+                        <Avatar
+                            src={nodeDatum.attributes?.imageUrl}
+                            alt={nodeDatum.name}
+                            sx={{ width: 48, height: 48, mb: 1, bgcolor: 'primary.light' }}
+                        >
+                            {nodeDatum.name.charAt(0)}
+                        </Avatar>
+                        <Typography variant="subtitle2" component="div" noWrap sx={{ fontWeight: 'bold', width: '100%', textAlign: 'center' }}>
+                            {nodeDatum.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ width: '100%', textAlign: 'center' }}>
+                            {nodeDatum.attributes?.position}
+                        </Typography>
+                    </Card>
+                </foreignObject>
+            </g>
+        );
+    };
+
+    if (!data || data.length === 0) return null;
 
     return (
-        <NodeWrapper>
-            <OrgChartNode
-                data={node.data}
-                hasChildren={hasChildren}
-                expanded={expanded}
-                onToggle={() => setExpanded(!expanded)}
+        <div style={{ width: '100%', height: '80vh', background: '#f4f6f8' }}>
+            <Tree
+                data={data}
+                orientation="vertical"
+                pathFunc="step"
+                translate={{ x: window.innerWidth / 2, y: 100 }}
+                nodeSize={{ x: 220, y: 160 }}
+                renderCustomNodeElement={renderCustomNodeElement}
+                enableLegacyTransitions={true}
+                transitionDuration={500}
             />
-
-            <AnimatePresence>
-                {hasChildren && expanded && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <ChildrenContainer>
-                            {/* Line connecting parent to children container */}
-                            {node.children.map((child, index) => (
-                                <Box key={child.data.id} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    {/* Horizontal line logic */}
-                                    {node.children.length > 1 && (
-                                        <Box
-                                            sx={{
-                                                position: 'absolute',
-                                                top: -20,
-                                                left: index === 0 ? '50%' : 0,
-                                                right: index === node.children.length - 1 ? '50%' : 0,
-                                                height: 2,
-                                                backgroundColor: '#ccc',
-                                            }}
-                                        />
-                                    )}
-                                    {/* Vertical line to child */}
-                                    <Box sx={{ width: 2, height: 20, backgroundColor: '#ccc', mt: -2.5, mb: 0 }} />
-
-                                    <OrgChart node={child} depth={depth + 1} />
-                                </Box>
-                            ))}
-                        </ChildrenContainer>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </NodeWrapper>
+        </div>
     );
 };
+
+export default OrgChart;
