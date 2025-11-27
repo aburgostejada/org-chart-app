@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Box, Typography, Paper, Button, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Paper, Button, CircularProgress, Alert, Link, Divider } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
+import TableViewIcon from '@mui/icons-material/TableView';
 import { parseCSV, buildOrgTree } from '../utils/csvParser';
 import type { OrgNode } from '../types';
 
@@ -59,6 +61,21 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
         }
     };
 
+    const loadSampleData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch('/sample.csv');
+            if (!response.ok) throw new Error('Failed to fetch sample data');
+            const blob = await response.blob();
+            const file = new File([blob], 'sample.csv', { type: 'text/csv' });
+            await processFile(file);
+        } catch (err: any) {
+            setError(err.message || 'Failed to load sample data');
+            setLoading(false);
+        }
+    };
+
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
             <Paper
@@ -72,7 +89,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
                     width: '100%',
                     maxWidth: 600,
                     textAlign: 'center',
-                    cursor: 'pointer',
                     bgcolor: dragActive ? 'action.hover' : 'background.paper',
                     borderStyle: 'dashed',
                     borderWidth: 2,
@@ -87,7 +103,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
                     type="file"
                     onChange={handleChange}
                 />
-                <label htmlFor="raised-button-file">
+                <label htmlFor="raised-button-file" style={{ cursor: 'pointer' }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                         <CloudUploadIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
                         <Typography variant="h5" color="text.primary" gutterBottom>
@@ -109,6 +125,24 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
                         </Typography>
                     </Box>
                 </label>
+
+                <Divider sx={{ my: 4 }}>OR</Divider>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<TableViewIcon />}
+                        onClick={loadSampleData}
+                        disabled={loading}
+                    >
+                        Load Sample Data
+                    </Button>
+
+                    <Link href="/sample.csv" download underline="hover" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <DownloadIcon fontSize="small" />
+                        Download Sample CSV
+                    </Link>
+                </Box>
             </Paper>
         </Box>
     );

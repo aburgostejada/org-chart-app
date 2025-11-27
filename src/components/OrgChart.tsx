@@ -1,13 +1,15 @@
 import React from 'react';
 import Tree from 'react-d3-tree';
 import type { OrgNode } from '../types';
-import { Card, Typography, Avatar } from '@mui/material';
+import { Card, Typography, Avatar, useTheme, GlobalStyles } from '@mui/material';
 
 interface OrgChartProps {
     data: OrgNode[];
 }
 
 const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
+    const theme = useTheme();
+
     // Custom node render function
     const renderCustomNodeElement = ({ nodeDatum, toggleNode }: any) => {
         // nodeDatum contains the data we passed.
@@ -31,8 +33,9 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             p: 1,
-                            bgcolor: 'white',
-                            border: '1px solid #e0e0e0',
+                            bgcolor: 'background.paper', // Use theme background
+                            backgroundImage: 'none', // Remove default gradient in dark mode if any
+                            border: `1px solid ${theme.palette.divider}`,
                             '&:hover': {
                                 borderColor: 'primary.main',
                                 boxShadow: 3,
@@ -46,7 +49,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                         >
                             {nodeDatum.name.charAt(0)}
                         </Avatar>
-                        <Typography variant="subtitle2" component="div" noWrap sx={{ fontWeight: 'bold', width: '100%', textAlign: 'center' }}>
+                        <Typography variant="subtitle2" component="div" noWrap sx={{ fontWeight: 'bold', width: '100%', textAlign: 'center', color: 'text.primary' }}>
                             {nodeDatum.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" noWrap sx={{ width: '100%', textAlign: 'center' }}>
@@ -61,7 +64,15 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
     if (!data || data.length === 0) return null;
 
     return (
-        <div style={{ width: '100%', height: '80vh', background: '#f4f6f8' }}>
+        <div style={{ width: '100%', height: '80vh', background: theme.palette.background.default }}>
+            <GlobalStyles
+                styles={{
+                    '.rd3t-link': {
+                        stroke: `${theme.palette.text.primary} !important`,
+                        strokeWidth: '2px !important',
+                    },
+                }}
+            />
             <Tree
                 data={data}
                 orientation="vertical"
@@ -71,6 +82,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                 renderCustomNodeElement={renderCustomNodeElement}
                 enableLegacyTransitions={true}
                 transitionDuration={500}
+
             />
         </div>
     );
