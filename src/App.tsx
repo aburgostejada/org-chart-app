@@ -1,4 +1,5 @@
-import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery, Grid, Card, CardContent, CardHeader } from '@mui/material';
+
+import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { useState, useMemo, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import OrgChart from './components/OrgChart';
@@ -6,12 +7,15 @@ import type { OrgNode } from './types';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [mode, setMode] = useState<'light' | 'dark'>(prefersDarkMode ? 'dark' : 'light');
   // Changed state to hold a map of orgName -> OrgNode[]
   const [orgDataMap, setOrgDataMap] = useState<Record<string, OrgNode[]> | null>(null);
+  // Changed to string | false for single expansion
+  const [expandedOrg, setExpandedOrg] = useState<string | false>(false);
 
   useEffect(() => {
     setMode(prefersDarkMode ? 'dark' : 'light');
@@ -72,10 +76,20 @@ function App() {
 
   const handleOrgDataLoaded = (data: Record<string, OrgNode[]>) => {
     setOrgDataMap(data);
+    // Open the first org by default
+    const firstOrg = Object.keys(data)[0];
+    if (firstOrg) {
+      setExpandedOrg(firstOrg);
+    }
   };
 
   const handleReset = () => {
     setOrgDataMap(null);
+    setExpandedOrg(false);
+  };
+
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpandedOrg(isExpanded ? panel : false);
   };
 
   return (
@@ -102,29 +116,36 @@ function App() {
             )}
           </Toolbar>
         </AppBar>
-        <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', p: 2 }}>
+        <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', p: 2, display: 'flex', flexDirection: 'column' }}>
           {!orgDataMap ? (
             <Container maxWidth="md">
               <FileUpload onDataLoaded={handleOrgDataLoaded} />
             </Container>
           ) : (
-            <Box sx={{ height: '100%', overflowY: 'auto' }}>
-              <Grid container spacing={3} sx={{ height: '100%' }}>
-                {Object.entries(orgDataMap).map(([orgName, nodes]) => (
-                  <Grid size={{ xs: 12, md: 6, lg: 6 }} key={orgName}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                      <CardHeader
-                        title={orgName}
-                        titleTypographyProps={{ variant: 'h6', color: 'primary' }}
-                        sx={{ borderBottom: 1, borderColor: 'divider', py: 1.5 }}
-                      />
-                      <CardContent sx={{ flexGrow: 1, p: 0, '&:last-child': { pb: 0 }, position: 'relative' }}>
-                        <OrgChart data={nodes} />
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', pb: 4 }}>
+              {Object.entries(orgDataMap).map(([orgName, nodes]) => (
+                <Accordion
+                  key={orgName}
+                  expanded={expandedOrg === orgName}
+                  onChange={handleChange(orgName)}
+                  sx={{ mb: 1 }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls={`${orgName}-content`}
+                    id={`${orgName}-header`}
+                  >
+                    <Typography variant="h6" color="primary">
+                      {orgName}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ height: '600px', p: 0, position: 'relative' }}>
+                    {expandedOrg === orgName && (
+                      <OrgChart data={nodes} />
+                    )}
+                  </AccordionDetails>
+                </Accordion>
+              ))}
             </Box>
           )}
         </Box>
