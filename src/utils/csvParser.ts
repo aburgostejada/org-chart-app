@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import type { Employee, OrgNode } from '../types';
+import { groupBy } from 'lodash';
 
 export const parseCSV = (file: File): Promise<Employee[]> => {
     return new Promise((resolve, reject) => {
@@ -15,6 +16,7 @@ export const parseCSV = (file: File): Promise<Employee[]> => {
                     name: row.name || row.Name || row.NAME,
                     position: row.position || row.Position || row.POSITION || row.Title || row.title,
                     department: row.department || row.Department || row.DEPARTMENT,
+                    organization: row.organization || row.Organization || row.ORGANIZATION || 'Default Org',
                     imageUrl: row.imageUrl || row.image_url || row.IMAGE_URL || row.photo || '',
                 })) as Employee[];
                 resolve(data);
@@ -59,4 +61,15 @@ export const buildOrgTree = (employees: Employee[]): OrgNode[] => {
     });
 
     return roots;
+};
+
+export const buildOrgTreesByOrganization = (employees: Employee[]): Record<string, OrgNode[]> => {
+    const grouped = groupBy(employees, 'organization');
+    const result: Record<string, OrgNode[]> = {};
+
+    Object.entries(grouped).forEach(([orgName, orgEmployees]) => {
+        result[orgName] = buildOrgTree(orgEmployees);
+    });
+
+    return result;
 };

@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery, Grid, Card, CardContent, CardHeader } from '@mui/material';
 import { useState, useMemo, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import OrgChart from './components/OrgChart';
@@ -10,7 +10,8 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [mode, setMode] = useState<'light' | 'dark'>(prefersDarkMode ? 'dark' : 'light');
-  const [orgData, setOrgData] = useState<OrgNode[] | null>(null);
+  // Changed state to hold a map of orgName -> OrgNode[]
+  const [orgDataMap, setOrgDataMap] = useState<Record<string, OrgNode[]> | null>(null);
 
   useEffect(() => {
     setMode(prefersDarkMode ? 'dark' : 'light');
@@ -69,26 +70,12 @@ function App() {
     [mode],
   );
 
-  const handleDataLoaded = (data: OrgNode[]) => {
-    // If multiple roots, wrap them in a virtual root or just pass them.
-    // react-d3-tree handles array but might be better to have a single root for the chart.
-    // Let's wrap if > 1
-    if (data.length > 1) {
-      setOrgData([{
-        name: 'Organization',
-        attributes: {
-          position: 'Root',
-          id: 'root',
-        },
-        children: data,
-      }]);
-    } else {
-      setOrgData(data);
-    }
+  const handleOrgDataLoaded = (data: Record<string, OrgNode[]>) => {
+    setOrgDataMap(data);
   };
 
   const handleReset = () => {
-    setOrgData(null);
+    setOrgDataMap(null);
   };
 
   return (
@@ -103,7 +90,7 @@ function App() {
             <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
               {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
-            {orgData && (
+            {orgDataMap && (
               <Button
                 startIcon={<RestartAltIcon />}
                 onClick={handleReset}
@@ -115,13 +102,30 @@ function App() {
             )}
           </Toolbar>
         </AppBar>
-        <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
-          {!orgData ? (
+        <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', p: 2 }}>
+          {!orgDataMap ? (
             <Container maxWidth="md">
-              <FileUpload onDataLoaded={handleDataLoaded} />
+              <FileUpload onDataLoaded={handleOrgDataLoaded} />
             </Container>
           ) : (
-            <OrgChart data={orgData} />
+            <Box sx={{ height: '100%', overflowY: 'auto' }}>
+              <Grid container spacing={3} sx={{ height: '100%' }}>
+                {Object.entries(orgDataMap).map(([orgName, nodes]) => (
+                  <Grid size={{ xs: 12, md: 6, lg: 6 }} key={orgName}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <CardHeader
+                        title={orgName}
+                        titleTypographyProps={{ variant: 'h6', color: 'primary' }}
+                        sx={{ borderBottom: 1, borderColor: 'divider', py: 1.5 }}
+                      />
+                      <CardContent sx={{ flexGrow: 1, p: 0, '&:last-child': { pb: 0 }, position: 'relative' }}>
+                        <OrgChart data={nodes} />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           )}
         </Box>
       </Box>

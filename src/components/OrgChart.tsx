@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import Tree from 'react-d3-tree';
 import type { OrgNode } from '../types';
 import { Card, Typography, Avatar, useTheme, GlobalStyles, Box, Paper, Chip } from '@mui/material';
-import { uniq } from 'lodash';
 
 interface OrgChartProps {
     data: OrgNode[];
@@ -121,7 +120,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
     if (!data || data.length === 0) return null;
 
     return (
-        <div style={{ width: '100%', height: '80vh', background: theme.palette.background.default, position: 'relative' }}>
+        <div style={{ width: '100%', height: '100%', background: theme.palette.background.default, position: 'relative' }}>
             <GlobalStyles
                 styles={{
                     '.rd3t-link': {

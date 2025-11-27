@@ -3,11 +3,11 @@ import { Box, Typography, Paper, Button, CircularProgress, Alert, Link, Divider 
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
 import TableViewIcon from '@mui/icons-material/TableView';
-import { parseCSV, buildOrgTree } from '../utils/csvParser';
+import { parseCSV, buildOrgTreesByOrganization } from '../utils/csvParser';
 import type { OrgNode } from '../types';
 
 interface FileUploadProps {
-    onDataLoaded: (data: OrgNode[]) => void;
+    onDataLoaded: (data: Record<string, OrgNode[]>) => void;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
@@ -33,11 +33,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onDataLoaded }) => {
             if (employees.length === 0) {
                 throw new Error('No employee data found in CSV');
             }
-            const tree = buildOrgTree(employees);
-            if (tree.length === 0) {
+            const treeMap = buildOrgTreesByOrganization(employees);
+            if (Object.keys(treeMap).length === 0) {
                 throw new Error('Could not build org tree. Check manager IDs.');
             }
-            onDataLoaded(tree);
+            onDataLoaded(treeMap);
         } catch (err: any) {
             setError(err.message || 'Failed to parse CSV');
         } finally {
