@@ -86,7 +86,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
     };
 
     // Custom node render function
-    const renderCustomNodeElement = ({ nodeDatum, toggleNode }: any) => {
+    const renderCustomNodeElement = React.useCallback(({ nodeDatum, toggleNode }: any) => {
         // nodeDatum contains the data we passed.
         const dept = nodeDatum.attributes?.department;
         const deptColor = dept ? departmentColorMap[dept] : theme.palette.grey[500];
@@ -102,6 +102,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
         if (hasChildren || hasHiddenChildren) {
             ExpandIcon = (
                 <ExpandMoreIcon
+                    key="expand-icon"
                     fontSize="small"
                     sx={{
                         transform: hasHiddenChildren ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -187,7 +188,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                 </foreignObject>
             </g>
         );
-    };
+    }, [departmentColorMap, theme]);
 
     const [isLegendExpanded, setIsLegendExpanded] = React.useState(true);
 
@@ -228,7 +229,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                         <ExpandMoreIcon
                             fontSize="small"
                             sx={{
-                                transform: isLegendExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transform: isLegendExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
                                 transition: 'transform 0.3s ease-in-out'
                             }}
                         />
@@ -319,7 +320,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
                     <ExpandMoreIcon
                         fontSize="small"
                         sx={{
-                            transform: isLegendExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transform: isLegendExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
                             transition: 'transform 0.3s ease-in-out'
                         }}
                     />

@@ -1,5 +1,5 @@
 
-import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline, Box, AppBar, Toolbar, Typography, Button, Container, IconButton, useMediaQuery, Tabs, Tab } from '@mui/material';
 import { useState, useMemo, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import OrgChart from './components/OrgChart';
@@ -7,15 +7,12 @@ import type { OrgNode } from './types';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [mode, setMode] = useState<'light' | 'dark'>(prefersDarkMode ? 'dark' : 'light');
-  // Changed state to hold a map of orgName -> OrgNode[]
-  const [orgDataMap, setOrgDataMap] = useState<Record<string, OrgNode[]> | null>(null);
-  // Changed to string | false for single expansion
-  const [expandedOrg, setExpandedOrg] = useState<string | false>(false);
+  const [orgDataByPhase, setOrgDataByPhase] = useState<Record<string, OrgNode[]>>({});
+  const [selectedPhase, setSelectedPhase] = useState<string | false>(false);
 
   useEffect(() => {
     setMode(prefersDarkMode ? 'dark' : 'light');
@@ -75,22 +72,25 @@ function App() {
   );
 
   const handleOrgDataLoaded = (data: Record<string, OrgNode[]>) => {
-    setOrgDataMap(data);
-    // Open the first org by default
-    const firstOrg = Object.keys(data)[0];
-    if (firstOrg) {
-      setExpandedOrg(firstOrg);
+    setOrgDataByPhase(data);
+
+    // Set initial phase
+    const phases = Object.keys(data);
+    if (phases.length > 0) {
+      setSelectedPhase(phases[0]);
     }
   };
 
   const handleReset = () => {
-    setOrgDataMap(null);
-    setExpandedOrg(false);
+    setOrgDataByPhase({});
+    setSelectedPhase(false);
   };
 
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpandedOrg(isExpanded ? panel : false);
+  const handlePhaseChange = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedPhase(newValue);
   };
+
+  const currentData = selectedPhase ? orgDataByPhase[selectedPhase] : [];
 
   return (
     <ThemeProvider theme={theme}>
@@ -99,12 +99,12 @@ function App() {
         <AppBar position="static" elevation={1}>
           <Toolbar>
             <Typography variant="h6" color="primary" sx={{ flexGrow: 1 }}>
-              Org Chart Visualizer
+              Construction Org Chart
             </Typography>
             <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
               {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
-            {orgDataMap && (
+            {Object.keys(orgDataByPhase).length > 0 && (
               <Button
                 startIcon={<RestartAltIcon />}
                 onClick={handleReset}
@@ -115,42 +115,45 @@ function App() {
               </Button>
             )}
           </Toolbar>
+          {Object.keys(orgDataByPhase).length > 0 && (
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedPhase}
+                onChange={handlePhaseChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                textColor="primary"
+                indicatorColor="primary"
+                aria-label="construction phases tabs"
+              >
+                {Object.keys(orgDataByPhase).map((phase) => (
+                  <Tab key={phase} label={phase} value={phase} />
+                ))}
+              </Tabs>
+            </Box>
+          )}
         </AppBar>
         <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', p: 2, display: 'flex', flexDirection: 'column' }}>
-          {!orgDataMap ? (
+          {Object.keys(orgDataByPhase).length === 0 ? (
             <Container maxWidth="md">
               <FileUpload onDataLoaded={handleOrgDataLoaded} />
             </Container>
           ) : (
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', pb: 4 }}>
-              {Object.entries(orgDataMap).map(([orgName, nodes]) => (
-                <Accordion
-                  key={orgName}
-                  expanded={expandedOrg === orgName}
-                  onChange={handleChange(orgName)}
-                  sx={{ mb: 1 }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    aria-controls={`${orgName}-content`}
-                    id={`${orgName}-header`}
-                  >
-                    <Typography variant="h6" color="primary">
-                      {orgName}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ height: '600px', p: 0, position: 'relative' }}>
-                    {expandedOrg === orgName && (
-                      <OrgChart data={nodes} />
-                    )}
-                  </AccordionDetails>
-                </Accordion>
-              ))}
+            <Box sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', height: '100%' }}>
+              {currentData.length > 0 ? (
+                <OrgChart data={currentData} />
+              ) : (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No data for this phase
+                  </Typography>
+                </Box>
+              )}
             </Box>
           )}
         </Box>
-      </Box>
-    </ThemeProvider>
+      </Box >
+    </ThemeProvider >
   );
 }
 

@@ -16,7 +16,7 @@ export const parseCSV = (file: File): Promise<Employee[]> => {
                     name: row.name || row.Name || row.NAME,
                     position: row.position || row.Position || row.POSITION || row.Title || row.title,
                     department: row.department || row.Department || row.DEPARTMENT,
-                    organization: row.organization || row.Organization || row.ORGANIZATION || 'Default Org',
+                    constructionPhase: row.constructionPhase || row.construction_phase || row.ConstructionPhase || row.organization || row.Organization || 'Default Phase',
                     imageUrl: row.imageUrl || row.image_url || row.IMAGE_URL || row.photo || '',
                 })) as Employee[];
                 resolve(data);
@@ -64,7 +64,7 @@ export const buildOrgTree = (employees: Employee[]): OrgNode[] => {
 };
 
 export const buildOrgTreesByOrganization = (employees: Employee[]): Record<string, OrgNode[]> => {
-    const grouped = groupBy(employees, 'organization');
+    const grouped = groupBy(employees, 'constructionPhase');
     const result: Record<string, OrgNode[]> = {};
 
     Object.entries(grouped).forEach(([orgName, orgEmployees]) => {
