@@ -94,7 +94,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ data }) => {
         // Calculate children count
         // react-d3-tree moves children to _children when collapsed
         const hasChildren = (nodeDatum.children && nodeDatum.children.length > 0);
-        const hasHiddenChildren = (nodeDatum._children && nodeDatum._children.length > 0);
+        const hasHiddenChildren = (nodeDatum.__rd3t && nodeDatum.__rd3t.collapsed);
         const childrenCount = (nodeDatum.children?.length || 0) + (nodeDatum._children?.length || 0);
 
         // Determine icon and rotation
